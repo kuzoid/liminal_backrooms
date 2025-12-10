@@ -15,6 +15,9 @@ SHARE_CHAIN_OF_THOUGHT = False  # Set to True to allow AIs to see each other's C
 SORA_SECONDS=6
 SORA_SIZE="1280x720"
 
+# Output directory for conversation HTML files
+OUTPUTS_DIR = "outputs"
+
 # Available AI models
 AI_MODELS = {
     "Claude Opus 4.5": "claude-opus-4.5",
@@ -1027,7 +1030,7 @@ creative code:
 
 def get_model_tier_by_id(model_id):
     """Get the tier (Paid/Free) for a model by its model_id.
-    
+
     Note: Upstream config has flat AI_MODELS dict. This is a compatibility
     function for our hierarchical model structure in grouped_model_selector.py.
     """
@@ -1036,4 +1039,42 @@ def get_model_tier_by_id(model_id):
         return "Free"
     # Default to Paid for all other models
     return "Paid"
+
+def get_model_id(display_name):
+    """Get the model_id for a given display name.
+
+    Args:
+        display_name: The human-readable model name (e.g., "Claude Opus 4.5")
+
+    Returns:
+        The model_id (e.g., "claude-opus-4.5") or None if not found
+    """
+    return AI_MODELS.get(display_name)
+
+def get_invite_models_text(tier="Both"):
+    """Get formatted text listing available models for AI invitations.
+
+    Args:
+        tier: "Free", "Paid", or "Both" - controls which models are listed
+
+    Returns:
+        Formatted string with model list for inclusion in system prompts
+    """
+    if tier == "Free":
+        # Filter for free models (those with :free in model_id)
+        models = {name: mid for name, mid in AI_MODELS.items() if ":free" in mid.lower()}
+    elif tier == "Paid":
+        # Filter for paid models (those without :free in model_id)
+        models = {name: mid for name, mid in AI_MODELS.items() if ":free" not in mid.lower()}
+    else:  # "Both"
+        models = AI_MODELS
+
+    if not models:
+        return "No models available for this tier."
+
+    # Format as a bulleted list
+    model_list = "\n".join(f"  - {name}" for name in sorted(models.keys()))
+
+    tier_label = f"{tier.upper()} MODELS" if tier != "Both" else "AVAILABLE MODELS"
+    return f"⚠️ ONLY USE {tier_label}:\n{model_list}\n— DO NOT use models not on this list!"
 
