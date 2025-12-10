@@ -176,9 +176,11 @@ models_cache.json
 .claude/
 settings/splitter_state.json
 
-# BackroomsBench evaluation reports (generated outputs)
+# BackroomsBench evaluation reports (generated outputs, except leaderboard)
 backroomsbench_reports/*
 !backroomsbench_reports/.gitkeep
+!backroomsbench_reports/LEADERBOARD.md
+!backroomsbench_reports/leaderboard.json
 
 # Output conversation files (timestamped)
 outputs/conversation_*.html
