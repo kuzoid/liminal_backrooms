@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Developer tools flag (used for freeze detector and other debug tools)
+DEVELOPER_TOOLS = False
+
 # Runtime configuration
 TURN_DELAY = 2  # Delay between turns (in seconds)
 SHOW_CHAIN_OF_THOUGHT_IN_CONTEXT = True  # Set to True to include Chain of Thought in conversation history
@@ -1021,3 +1024,16 @@ creative code:
         "AI-5": ""
     },
 }
+
+def get_model_tier_by_id(model_id):
+    """Get the tier (Paid/Free) for a model by its model_id.
+    
+    Note: Upstream config has flat AI_MODELS dict. This is a compatibility
+    function for our hierarchical model structure in grouped_model_selector.py.
+    """
+    # Check for :free suffix
+    if model_id and ":free" in model_id.lower():
+        return "Free"
+    # Default to Paid for all other models
+    return "Paid"
+
