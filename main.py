@@ -96,7 +96,7 @@ class VideoUpdateSignals(QObject):
 class Worker(QRunnable):
     """Worker thread for processing AI turns using QThreadPool"""
     
-    def __init__(self, ai_name, conversation, model, system_prompt, is_branch=False, branch_id=None, gui=None, invite_tier="Both"):
+    def __init__(self, ai_name, conversation, model, system_prompt, is_branch=False, branch_id=None, gui=None, invite_tier="Both", prompt_modifications=None, ai_temperatures=None):
         super().__init__()
         self.ai_name = ai_name
         self.conversation = conversation.copy()  # Make a copy to prevent race conditions
@@ -106,7 +106,9 @@ class Worker(QRunnable):
         self.branch_id = branch_id
         self.gui = gui
         self.invite_tier = invite_tier
-        
+        self.prompt_modifications = prompt_modifications or {}
+        self.ai_temperatures = ai_temperatures or {}
+
         # Create signals object
         self.signals = WorkerSignals()
     
@@ -135,7 +137,9 @@ class Worker(QRunnable):
                 self.system_prompt,
                 gui=self.gui,
                 streaming_callback=stream_chunk,
-                invite_tier=self.invite_tier
+                invite_tier=self.invite_tier,
+                prompt_modifications=self.prompt_modifications,
+                ai_temperatures=self.ai_temperatures
             )
             print(f"[Worker] ai_turn completed for {self.ai_name}, result type: {type(result)}")
             
@@ -166,12 +170,14 @@ class Worker(QRunnable):
             # Still emit finished signal even if there's an error
             self.signals.finished.emit()
 
-def ai_turn(ai_name, conversation, model, system_prompt, gui=None, is_branch=False, branch_output=None, streaming_callback=None, invite_tier="Both"):
+def ai_turn(ai_name, conversation, model, system_prompt, gui=None, is_branch=False, branch_output=None, streaming_callback=None, invite_tier="Both", prompt_modifications=None, ai_temperatures=None):
     """Execute an AI turn with the given parameters
-    
+
     Args:
         streaming_callback: Optional function(chunk: str) to call with each streaming token
         invite_tier: "Free", "Paid", or "Both" - controls which models AI can invite
+        prompt_modifications: Optional dict mapping AI names to custom system prompts
+        ai_temperatures: Optional dict mapping AI names to temperature values
     """
     print(f"==================================================")
     print(f"Starting {model} turn ({ai_name})...")
@@ -282,7 +288,31 @@ def ai_turn(ai_name, conversation, model, system_prompt, gui=None, is_branch=Fal
     
     # Apply the enhanced system prompt (with HTML contribution instructions)
     system_prompt = enhanced_system_prompt
-    
+
+    # Check if this AI has added to their prompt via !prompt command
+    if prompt_modifications and ai_name in prompt_modifications:
+        # Note: This is for compatibility - the variable name is prompt_modifications
+        # but it's actually used as prompt_additions (list-based)
+        if isinstance(prompt_modifications, dict) and ai_name in prompt_modifications:
+            if isinstance(prompt_modifications[ai_name], list):
+                # List-based additions (upstream approach)
+                additions = prompt_modifications[ai_name]
+                if additions:
+                    formatted_additions = "\n\n[Your remembered insights/perspectives]:\n- " + "\n- ".join(additions)
+                    system_prompt += formatted_additions
+                    print(f"[AI Turn] Applied {len(additions)} prompt additions for {ai_name}")
+            else:
+                # Single string (fallback for old approach)
+                custom_prompt = prompt_modifications[ai_name]
+                print(f"[AI Turn] Using custom prompt for {ai_name}: {custom_prompt[:100]}...")
+                system_prompt = custom_prompt
+
+    # Get temperature for this AI (default 1.0)
+    temperature = 1.0
+    if ai_temperatures and ai_name in ai_temperatures:
+        temperature = ai_temperatures[ai_name]
+        print(f"[AI Turn] Using custom temperature for {ai_name}: {temperature}")
+
     # CRITICAL: Always ensure we have the system prompt
     # No matter what happens with the conversation, we need this
     messages = []
@@ -665,7 +695,7 @@ def ai_turn(ai_name, conversation, model, system_prompt, gui=None, is_branch=Fal
                     context_messages = []
                 
                 # Call OpenRouter API with streaming support
-                response = call_openrouter_api(prompt_content, context_messages, model_id, system_prompt, stream_callback=streaming_callback)
+                response = call_openrouter_api(prompt_content, context_messages, model_id, system_prompt, stream_callback=streaming_callback, temperature=temperature)
                 
                 # Avoid printing full response which could be large
                 response_preview = str(response)[:200] + "..." if response and len(str(response)) > 200 else response
@@ -715,16 +745,20 @@ class ConversationManager:
     def __init__(self, app):
         self.app = app
         self.workers = []  # Keep track of worker threads
-        
+
+        # Initialize AI command state dictionaries
+        self.ai_prompt_additions = {}  # Store prompt additions from !prompt command (list per AI)
+        self.ai_temperatures = {}  # Store custom temperatures from !temperature command
+
         # Initialize the worker thread pool
         self.thread_pool = QThreadPool()
         print(f"Conversation Manager initialized with {self.thread_pool.maxThreadCount()} threads")
-        
+
         # Set up image update signals for thread-safe UI updates
         self.image_signals = ImageUpdateSignals()
         self.image_signals.image_ready.connect(self._on_image_ready)
         self.image_signals.image_failed.connect(self._on_image_failed)
-        
+
         # Set up video update signals for thread-safe UI updates
         self.video_signals = VideoUpdateSignals()
         self.video_signals.video_ready.connect(self._on_video_ready)
@@ -1126,8 +1160,8 @@ class ConversationManager:
             
             # Get invite tier setting
             invite_tier = self.app.right_sidebar.control_panel.get_ai_invite_tier()
-            
-            worker = Worker(ai_name, self.app.main_conversation, model, prompt, gui=self.app, invite_tier=invite_tier)
+
+            worker = Worker(ai_name, self.app.main_conversation, model, prompt, gui=self.app, invite_tier=invite_tier, prompt_modifications=self.ai_prompt_additions, ai_temperatures=self.ai_temperatures)
             worker.signals.started.connect(self.on_ai_started)
             worker.signals.response.connect(self.on_ai_response_received)
             worker.signals.result.connect(self.on_ai_result_received)
@@ -1237,8 +1271,8 @@ class ConversationManager:
                 
                 # Get invite tier setting
                 invite_tier = self.app.right_sidebar.control_panel.get_ai_invite_tier()
-                
-                worker = Worker(ai_name, conversation.copy(), model, prompt, gui=self.app, invite_tier=invite_tier)
+
+                worker = Worker(ai_name, conversation.copy(), model, prompt, gui=self.app, invite_tier=invite_tier, prompt_modifications=self.ai_prompt_additions, ai_temperatures=self.ai_temperatures)
                 worker.signals.started.connect(self.on_ai_started)
                 worker.signals.response.connect(self.on_ai_response_received)
                 worker.signals.result.connect(self.on_ai_result_received)
@@ -1502,9 +1536,9 @@ class ConversationManager:
         invite_tier = self.app.right_sidebar.control_panel.get_ai_invite_tier()
         
         # Create worker threads for AI-1, AI-2, and AI-3
-        worker1 = Worker("AI-1", conversation, ai_1_model, ai_1_prompt, is_branch=True, branch_id=branch_id, gui=self.app, invite_tier=invite_tier)
-        worker2 = Worker("AI-2", conversation, ai_2_model, ai_2_prompt, is_branch=True, branch_id=branch_id, gui=self.app, invite_tier=invite_tier)
-        worker3 = Worker("AI-3", conversation, ai_3_model, ai_3_prompt, is_branch=True, branch_id=branch_id, gui=self.app, invite_tier=invite_tier)
+        worker1 = Worker("AI-1", conversation, ai_1_model, ai_1_prompt, is_branch=True, branch_id=branch_id, gui=self.app, invite_tier=invite_tier, prompt_modifications=self.ai_prompt_additions, ai_temperatures=self.ai_temperatures)
+        worker2 = Worker("AI-2", conversation, ai_2_model, ai_2_prompt, is_branch=True, branch_id=branch_id, gui=self.app, invite_tier=invite_tier, prompt_modifications=self.ai_prompt_additions, ai_temperatures=self.ai_temperatures)
+        worker3 = Worker("AI-3", conversation, ai_3_model, ai_3_prompt, is_branch=True, branch_id=branch_id, gui=self.app, invite_tier=invite_tier, prompt_modifications=self.ai_prompt_additions, ai_temperatures=self.ai_temperatures)
         
         # Connect signals for worker1
         worker1.signals.started.connect(self.on_ai_started)
@@ -1975,6 +2009,12 @@ class ConversationManager:
             return self._execute_list_models_command(ai_name)
         elif action == 'mute_self':
             return self._execute_mute_command(ai_name)
+        elif action == 'search':
+            return self._execute_search_command(params.get('query', ''), ai_name)
+        elif action == 'prompt':
+            return self._execute_prompt_command(params.get('text', ''), ai_name)
+        elif action == 'temperature':
+            return self._execute_temperature_command(params.get('value'), ai_name)
         else:
             # Get AI's model name for consistent formatting
             ai_num = int(ai_name.split('-')[1]) if '-' in ai_name else 1
@@ -2307,12 +2347,129 @@ class ConversationManager:
         # Get AI's model name for consistent formatting
         ai_num = int(ai_name.split('-')[1]) if '-' in ai_name else 1
         model_name = self.get_model_for_ai(ai_num)
-        
+
         if not hasattr(self.app, 'muted_ais'):
             self.app.muted_ais = set()
-        
+
         self.app.muted_ais.add(ai_name)
         return True, f"🔇 [{ai_name} ({model_name})]: !mute_self"
+
+    def _execute_search_command(self, query: str, ai_name: str) -> tuple[bool, str]:
+        """Execute a web search command and inject results into conversation."""
+        from shared_utils import web_search
+
+        # Get AI's model name for consistent formatting
+        ai_num = int(ai_name.split('-')[1]) if '-' in ai_name else 1
+        model_name = self.get_model_for_ai(ai_num)
+
+        if not query or len(query.strip()) < 3:
+            return False, f"❌ [{ai_name} ({model_name})]: !search — query too short"
+
+        print(f"[Agent] Searching for {ai_name} ({model_name}): {query}")
+
+        # Perform the search
+        search_result = web_search(query, max_results=5)
+
+        if not search_result.get('success'):
+            error_msg = search_result.get('error', 'Unknown error')
+            return False, f"❌ [{ai_name} ({model_name})]: !search \"{query}\" — {error_msg}"
+
+        # Format results for display
+        results = search_result.get('results', [])
+        if not results:
+            return False, f"❌ [{ai_name} ({model_name})]: !search \"{query}\" — no results found"
+
+        # Format results for conversation context (with markdown formatting)
+        formatted = f"🔍 [{ai_name} ({model_name})]: !search \"{query}\"\n\n**Search Results:**\n"
+        for i, r in enumerate(results, 1):
+            formatted += f"\n{i}. **{r.get('title', 'No title')}**\n"
+            formatted += f"   {r.get('snippet', 'No snippet')}\n"
+            formatted += f"   Source: {r.get('url', 'No URL')}\n"
+
+        # Add search results to conversation so all AIs can see them
+        search_message = {
+            "role": "user",
+            "content": formatted,
+            "_type": "search_result",
+            "hidden": False
+        }
+        self.app.main_conversation.append(search_message)
+
+        # Trigger UI update by redisplaying conversation
+        self.app.left_pane.display_conversation(self.app.main_conversation)
+
+        return True, f"🔍 [{ai_name} ({model_name})]: !search \"{query}\" (found {len(results)} results)"
+
+    def _execute_prompt_command(self, text: str, ai_name: str) -> tuple[bool, str]:
+        """Execute a prompt addition command - AI appends to their own system prompt.
+        Note: !prompt commands are stripped from conversation context so other AIs don't see them,
+        but the full text is shown in the GUI notification for the human operator.
+        A subtle notification is added to context so other AIs know the action occurred."""
+        # Get AI's model name for consistent formatting
+        ai_num = int(ai_name.split('-')[1]) if '-' in ai_name else 1
+        model_name = self.get_model_for_ai(ai_num)
+
+        if not text or len(text.strip()) < 3:
+            return False, f"❌ [{ai_name} ({model_name})]: !prompt — prompt text too short"
+
+        # Initialize list if needed
+        if ai_name not in self.ai_prompt_additions:
+            self.ai_prompt_additions[ai_name] = []
+
+        # Add the new prompt text (appends, doesn't replace)
+        self.ai_prompt_additions[ai_name].append(text.strip())
+
+        print(f"[Agent] {ai_name} ({model_name}) added to their prompt: {text[:50]}...")
+        print(f"[Agent] {ai_name} now has {len(self.ai_prompt_additions[ai_name])} prompt additions")
+
+        # Add a subtle notification to conversation context (visible to other AIs)
+        # This lets them know the action occurred without revealing the content
+        context_notification = {
+            "role": "user",
+            "content": f"[{ai_name} modified their system prompt]",
+            "_type": "system_notification"
+        }
+        self.app.main_conversation.append(context_notification)
+
+        # Trigger UI update by redisplaying conversation
+        self.app.left_pane.display_conversation(self.app.main_conversation)
+
+        # Show full untruncated text in notification (only human sees this, not other AIs)
+        return True, f"💭 [{ai_name} ({model_name})]: !prompt \"{text}\""
+
+    def _execute_temperature_command(self, value: str, ai_name: str) -> tuple[bool, str]:
+        """Execute a temperature modification command - AI sets their own sampling temperature.
+        Note: !temperature commands are stripped from conversation context."""
+        # Get AI's model name for consistent formatting
+        ai_num = int(ai_name.split('-')[1]) if '-' in ai_name else 1
+        model_name = self.get_model_for_ai(ai_num)
+
+        # Validate temperature value
+        try:
+            temp = float(value)
+            if temp < 0 or temp > 2:
+                return False, f"❌ [{ai_name} ({model_name})]: !temperature {value} — must be between 0 and 2"
+        except (ValueError, TypeError):
+            return False, f"❌ [{ai_name} ({model_name})]: !temperature — invalid value '{value}'"
+
+        # Store the temperature for this AI
+        self.ai_temperatures[ai_name] = temp
+
+        print(f"[Agent] {ai_name} ({model_name}) set their temperature to {temp}")
+
+        # Add a subtle notification to conversation context (visible to other AIs)
+        context_notification = {
+            "role": "user",
+            "content": f"[{ai_name} adjusted their temperature]",
+            "_type": "system_notification"
+        }
+        self.app.main_conversation.append(context_notification)
+
+        # Trigger UI update by redisplaying conversation
+        self.app.left_pane.display_conversation(self.app.main_conversation)
+
+        # Show the actual value in notification for human
+        return True, f"🌡️ [{ai_name} ({model_name})]: !temperature {temp}"
     
     def get_model_for_ai(self, ai_number):
         """Get the selected model ID for the AI by number (1-5)"""
@@ -2327,7 +2484,19 @@ class ConversationManager:
         # Use get_selected_model_id() to get the actual model ID, not display name
         model_id = selector.get_selected_model_id()
         return model_id if model_id else selector.currentText()  # Fallback to text if no ID
-    
+
+    def get_prompt_additions_for_ai(self, ai_name: str) -> str:
+        """Get all prompt additions for a specific AI as a formatted string."""
+        if ai_name not in self.ai_prompt_additions or not self.ai_prompt_additions[ai_name]:
+            return ""
+
+        additions = self.ai_prompt_additions[ai_name]
+        return "\n\n[Your remembered insights/perspectives]:\n- " + "\n- ".join(additions)
+
+    def get_temperature_for_ai(self, ai_name: str) -> float:
+        """Get the temperature setting for a specific AI (default 1.0)."""
+        return self.ai_temperatures.get(ai_name, 1.0)
+
     def on_ai_error(self, error_message):
         """Handle AI errors for both main and branch conversations"""
         # Clear all typing indicators on error
@@ -2610,9 +2779,9 @@ class ConversationManager:
         invite_tier = self.app.right_sidebar.control_panel.get_ai_invite_tier()
         
         # Create worker threads for AI-1, AI-2, and AI-3
-        worker1 = Worker("AI-1", conversation, ai_1_model, ai_1_prompt, is_branch=True, branch_id=branch_id, gui=self.app, invite_tier=invite_tier)
-        worker2 = Worker("AI-2", conversation, ai_2_model, ai_2_prompt, is_branch=True, branch_id=branch_id, gui=self.app, invite_tier=invite_tier)
-        worker3 = Worker("AI-3", conversation, ai_3_model, ai_3_prompt, is_branch=True, branch_id=branch_id, gui=self.app, invite_tier=invite_tier)
+        worker1 = Worker("AI-1", conversation, ai_1_model, ai_1_prompt, is_branch=True, branch_id=branch_id, gui=self.app, invite_tier=invite_tier, prompt_modifications=self.ai_prompt_additions, ai_temperatures=self.ai_temperatures)
+        worker2 = Worker("AI-2", conversation, ai_2_model, ai_2_prompt, is_branch=True, branch_id=branch_id, gui=self.app, invite_tier=invite_tier, prompt_modifications=self.ai_prompt_additions, ai_temperatures=self.ai_temperatures)
+        worker3 = Worker("AI-3", conversation, ai_3_model, ai_3_prompt, is_branch=True, branch_id=branch_id, gui=self.app, invite_tier=invite_tier, prompt_modifications=self.ai_prompt_additions, ai_temperatures=self.ai_temperatures)
         
         # Connect signals for worker1
         worker1.signals.started.connect(self.on_ai_started)
