@@ -23,7 +23,7 @@ def test_imports():
             get_model_id,
             get_invite_models_text
         )
-        print("    ✓ config imports successful")
+        print("    [OK] config imports successful")
 
         print("  - Importing shared_utils...")
         from shared_utils import (
@@ -32,21 +32,21 @@ def test_imports():
             call_openai_api,
             generate_image_from_text
         )
-        print("    ✓ shared_utils imports successful")
+        print("    [OK] shared_utils imports successful")
 
         print("  - Importing command_parser...")
-        from command_parser import parse_agent_commands
-        print("    ✓ command_parser imports successful")
+        from command_parser import parse_commands
+        print("    [OK] command_parser imports successful")
 
         print("  - Importing styles...")
         from styles import COLORS, FONTS, get_button_style
-        print("    ✓ styles imports successful")
+        print("    [OK] styles imports successful")
 
         print("  - Importing grouped_model_selector...")
         from grouped_model_selector import GroupedModelComboBox
-        print("    ✓ grouped_model_selector imports successful")
+        print("    [OK] grouped_model_selector imports successful")
 
-        print("\n✅ All imports successful!")
+        print("\n[SUCCESS] All imports successful!")
         print(f"   - DEVELOPER_TOOLS = {DEVELOPER_TOOLS}")
         print(f"   - OUTPUTS_DIR = {OUTPUTS_DIR}")
         print(f"   - AI_MODELS count = {len(AI_MODELS)}")
@@ -55,12 +55,12 @@ def test_imports():
         return True
 
     except ImportError as e:
-        print(f"\n❌ Import error: {e}")
+        print(f"\n[ERROR] Import error: {e}")
         import traceback
         traceback.print_exc()
         return False
     except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
+        print(f"\n[ERROR] Unexpected error: {e}")
         import traceback
         traceback.print_exc()
         return False

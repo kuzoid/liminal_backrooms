@@ -182,7 +182,7 @@ def validate_models(curated_models: dict) -> dict:
                     validated[tier][provider][display_name] = model_id
                     kept_count += 1
                 else:
-                    print(f"[ModelUpdater] ✗ Removed (404): {model_id}")
+                    print(f"[ModelUpdater] [X] Removed (404): {model_id}")
                     removed_count += 1
             
             # Remove empty providers
@@ -192,7 +192,7 @@ def validate_models(curated_models: dict) -> dict:
     if removed_count > 0:
         print(f"[ModelUpdater] Validated: {kept_count} kept, {removed_count} removed")
     else:
-        print(f"[ModelUpdater] All {kept_count} curated models validated ✓")
+        print(f"[ModelUpdater] All {kept_count} curated models validated [OK]")
     
     return validated
 
@@ -217,14 +217,14 @@ if __name__ == "__main__":
     ids = get_available_ids()
     
     if ids:
-        print(f"\n✓ {len(ids)} models available on OpenRouter")
+        print(f"\n[OK] {len(ids)} models available on OpenRouter")
         
         # Show some free models
         free_models = [m for m in ids if ":free" in m]
         print(f"\nFree models ({len(free_models)}):")
         for m in sorted(free_models)[:20]:
-            print(f"  • {m}")
+            print(f"  - {m}")
         if len(free_models) > 20:
             print(f"  ... and {len(free_models) - 20} more")
     else:
-        print("\n✗ Could not fetch models")
+        print("\n[X] Could not fetch models")
