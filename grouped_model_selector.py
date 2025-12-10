@@ -5,7 +5,7 @@ Grouped Model Selector - A QComboBox with hierarchical grouping for AI models.
 Provides a 3-level hierarchy:
   - Tier (Paid / Free)
     - Provider (Anthropic, Google, Meta, etc.)
-      - Model (Claude Sonnet 4 (claude-sonnet-4), etc.)
+      - Model (Display Name (model-id), e.g., "Claude Sonnet 4.5 (anthropic/claude-sonnet-4.5)")
 
 Only the leaf model items are selectable; tier and provider headers are visual groupings.
 
@@ -152,11 +152,11 @@ class GroupedItemDelegate(QStyledItemDelegate):
 class GroupedModelComboBox(QComboBox):
     """
     A QComboBox that displays AI models in a hierarchical grouped structure.
-    
+
     Structure (from config.AI_MODELS):
     ▾ Paid
-        Anthropic
-            Claude Sonnet 4 (anthropic/claude-sonnet-4)
+        Anthropic Claude
+            Claude Sonnet 4.5 (anthropic/claude-sonnet-4.5)
             Claude Opus 4.5 (anthropic/claude-opus-4.5)
             ...
         OpenAI
@@ -164,22 +164,24 @@ class GroupedModelComboBox(QComboBox):
             ...
     ▾ Free
         Google
-            Gemma 3 27B (google/gemma-3-27b-it:free)
+            Gemini 2.0 Flash Exp (google/gemini-2.0-flash-exp:free)
             ...
-    
+
+    Each model displays as: "Display Name (model-id)"
+
     All model data comes from config.AI_MODELS - no duplication.
-    
+
     Args:
         colors: Dict of color values (typically gui.COLORS). Passed to delegate for styling.
                 See GroupedItemDelegate for expected keys.
         parent: Parent QWidget
-    
+
     Usage in gui.py:
         from grouped_model_selector import GroupedModelComboBox
-        
+
         model_dropdown = GroupedModelComboBox(colors=COLORS, parent=self)
         model_dropdown.currentIndexChanged.connect(self.on_model_changed)
-        
+
         # Get selected model
         model_id = model_dropdown.get_selected_model_id()
     """
@@ -255,12 +257,13 @@ class GroupedModelComboBox(QComboBox):
                 row += 1
                 
                 for display_name, model_id in models.items():
-                    # Add model item (selectable)
-                    model_item = QStandardItem(display_name)
+                    # Add model item (selectable) - show both display name and model ID
+                    full_display = f"{display_name} ({model_id})"
+                    model_item = QStandardItem(full_display)
                     model_item.setData("model", Qt.ItemDataRole.UserRole + 1)
                     model_item.setData(model_id, Qt.ItemDataRole.UserRole + 2)
                     self.item_model.appendRow(model_item)
-                    
+
                     # Track indices for lookup
                     self._model_id_to_index[model_id] = row
                     self._display_name_to_index[display_name] = row
