@@ -173,6 +173,8 @@ logs/*
 !logs/.gitkeep
 videos/*
 models_cache.json
+.claude/
+settings/splitter_state.json
 
 # BackroomsBench evaluation reports (generated outputs)
 backroomsbench_reports/*
