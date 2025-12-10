@@ -186,3 +186,10 @@ outputs/conversation_full.html
 
 # Keep the outputs folder structure
 !outputs/.gitkeep
+
+# Root-level generated HTML files (but allow docs/*.html for GitHub Pages)
+/*.html
+
+# Temporary diff files
+diff_*.txt
+DIFF_*.md
