@@ -172,9 +172,11 @@ memory/ai-2/*
 logs/*
 !logs/.gitkeep
 videos/*
-shitpostbench_evaluation.md
-shitpostbench.py
-reduce_html_size.py
+models_cache.json
 
-# Benchmark reports (local only)
-shitpostbench_reports/
+# Output conversation files (timestamped)
+outputs/conversation_*.html
+outputs/conversation_full.html
+
+# Keep the outputs folder structure
+!outputs/.gitkeep
