@@ -32,7 +32,8 @@ from config import (
     AI_MODELS,
     SYSTEM_PROMPT_PAIRS,
     SHOW_CHAIN_OF_THOUGHT_IN_CONTEXT,
-    OUTPUTS_DIR
+    OUTPUTS_DIR,
+    DEVELOPER_TOOLS
 )
 
 # Import centralized styling - single source of truth for colors and widget styles
@@ -566,11 +567,11 @@ class ChatScrollArea(QScrollArea):
     ═══════════════════════════════════════════════════════════════════════════
     DEBUG OUTPUT GUIDE
     ═══════════════════════════════════════════════════════════════════════════
-    
-    Enable debugging: 
-        - ChatScrollArea._debug = True   (for [CHAT-SCROLL] messages)
-        - ConversationPane._SCROLL_DEBUG = True   (for [SCROLL] messages)
-    
+
+    Enable debugging: Set config.DEVELOPER_TOOLS = True
+        - ChatScrollArea._debug (for [CHAT-SCROLL] messages)
+        - ConversationPane._SCROLL_DEBUG (for [SCROLL] messages)
+
     Filter logs: grep "SCROLL" to see all scroll-related output
     
     ───────────────────────────────────────────────────────────────────────────
@@ -645,7 +646,7 @@ class ChatScrollArea(QScrollArea):
         # ─── Debug Settings ─────────────────────────────────────────────────
         # Set to True to enable scroll debug logging to console
         # Logs use prefix [CHAT-SCROLL] for easy filtering: grep "CHAT-SCROLL"
-        self._debug = True
+        self._debug = DEVELOPER_TOOLS
         
         # ─── Debounce Timer ─────────────────────────────────────────────────
         # Batches rapid scroll requests (e.g., multiple add_message calls)
@@ -3629,8 +3630,8 @@ class ConversationPane(QWidget):
     # - [CHAT-SCROLL] messages come from ChatScrollArea (low-level scroll ops)
     # - [SCROLL] messages come from ConversationPane (high-level render ops)
     # =========================================================================
-    
-    _SCROLL_DEBUG = True  # Enable [SCROLL] logging (also enable ChatScrollArea._debug)
+
+    _SCROLL_DEBUG = DEVELOPER_TOOLS  # Enable [SCROLL] logging (controlled by config.DEVELOPER_TOOLS)
     
     def reset_scroll_state(self):
         """Reset to auto-scroll mode (delegates to ChatScrollArea)."""
