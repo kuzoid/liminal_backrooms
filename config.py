@@ -18,55 +18,90 @@ SORA_SIZE="1280x720"
 # Output directory for conversation HTML files
 OUTPUTS_DIR = "outputs"
 
-# Available AI models
+# Available AI models - Hierarchical structure for GroupedModelComboBox
+# Structure: Tier → Provider → {Display Name: model_id}
 AI_MODELS = {
-    "Claude Opus 4.5": "claude-opus-4.5",
-    "Claude 3 Opus": "claude-3-opus",
-    "Claude Sonnet 4.5": "claude-sonnet-4.5",
-    "Claude Haiku 4.5": "claude-haiku-4.5",
-    "Claude Sonnet 4": "claude-sonnet-4",
-    "Gemini 3 Pro": "google/gemini-3-pro-preview",
-    "Claude 4 Opus": "claude-opus-4",
-    "Deepseek 3.2": "deepseek/deepseek-v3.2-specialized",
-    "GPT 5.1": "openai/gpt-5.1",
-    "GPT 4o": "openai/gpt-4o",
-    "Kimi K2": "moonshotai/kimi-k2",
-    "Kimi K2 Thinking": "moonshotai/kimi-k2-thinking",
-    "GPT 5 Pro": "openai/gpt-5-pro",
-    "Gemini 2.5 Pro": "google/gemini-2.5-pro",
-    "Claude Opus 4.1": "claude-opus-4.1",
-    "Grok 4": "x-ai/grok-4",
-    "Qwen 3 Max": "qwen/qwen3-max",
-    "DeepSeek R1": "deepseek-ai/deepseek-r1",
-    "qwen/qwen3-next-80b-a3b-thinking": "qwen/qwen3-next-80b-a3b-thinking",
-    "Hermes 4": "nousresearch/hermes-4-405b",
-    "Claude 3.7 Sonnet": "claude-3.7-sonnet",
-    "Gemini 2.5 Flash Lite": "google/gemini-2.5-flash-lite-preview-06-17",
-    "GPT 5": "openai/gpt-5",
-    "openai/gpt-oss-120b": "openai/gpt-oss-120b",
-    "openai/gpt-4.1": "openai/gpt-4.1",
-    "Grok 3": "x-ai/grok-3-beta",
-    "deepseek/deepseek-chat-v3-0324:free": "deepseek/deepseek-chat-v3-0324:free",
-    "google/gemma-3-27b-it:free": "google/gemma-3-27b-it:free",
-    "gpt-4.5-preview-2025-02-27": "gpt-4.5-preview-2025-02-27",
-    "qwen/qwen3-235b-a22b": "qwen/qwen3-235b-a22b",
-    "Claude 3.5 Sonnet 20241022": "claude-3-5-sonnet-20241022",
-    "Gemini 2.5 Flash": "google/gemini-2.5-flash-preview",
-    "o3": "openai/o3",
-    "openai/chatgpt-4o-latest": "openai/chatgpt-4o-latest",
-    "Gemini 2.5 Pro": "google/gemini-2.5-pro-preview-03-25",
-    "GPT 4.1": "openai/gpt-4.1",
-    "Claude 3.5 Haiku 20241022": "claude-3.5-haiku",
-    "Claude 3 Sonnet 20240229": "claude-3-sonnet-20240229",
-    "Llama 3.1 405B Instruct": "meta-llama/llama-3.1-405b-instruct",
-    "Flux 1.1 Pro": "black-forest-labs/flux-1.1-pro",
-    "google/gemini-2.0-flash-thinking-exp:free": "google/gemini-2.0-flash-thinking-exp:free",
-    "openai/o1-mini": "openai/o1-mini",
-    "openai/o1": "openai/o1",
-    "Sora 2": "sora-2",
-    "Sora 2 Pro": "sora-2-pro",
-    "Nano Banana Pro": "google/gemini-3-pro-image-preview",
+    "Paid": {
+        "Anthropic Claude": {
+            "Claude Opus 4.5": "claude-opus-4.5",
+            "Claude 4 Opus": "claude-opus-4",
+            "Claude Opus 4.1": "claude-opus-4.1",
+            "Claude Sonnet 4.5": "claude-sonnet-4.5",
+            "Claude Sonnet 4": "claude-sonnet-4",
+            "Claude 3.7 Sonnet": "claude-3.7-sonnet",
+            "Claude 3.5 Sonnet 20241022": "claude-3-5-sonnet-20241022",
+            "Claude 3 Sonnet 20240229": "claude-3-sonnet-20240229",
+            "Claude Haiku 4.5": "claude-haiku-4.5",
+            "Claude 3.5 Haiku 20241022": "claude-3.5-haiku",
+            "Claude 3 Opus": "claude-3-opus",
+        },
+        "Google": {
+            "Gemini 3 Pro": "google/gemini-3-pro-preview",
+            "Gemini 2.5 Pro (Latest)": "google/gemini-2.5-pro-preview-03-25",
+            "Gemini 2.5 Pro": "google/gemini-2.5-pro",
+            "Gemini 2.5 Flash": "google/gemini-2.5-flash-preview",
+            "Gemini 2.5 Flash Lite": "google/gemini-2.5-flash-lite-preview-06-17",
+            "Nano Banana Pro": "google/gemini-3-pro-image-preview",
+        },
+        "OpenAI": {
+            "GPT 5.1": "openai/gpt-5.1",
+            "GPT 5 Pro": "openai/gpt-5-pro",
+            "GPT 5": "openai/gpt-5",
+            "GPT 4.5 Preview": "gpt-4.5-preview-2025-02-27",
+            "GPT 4.1 (Latest)": "openai/gpt-4.1",
+            "GPT 4.1": "openai/gpt-4.1",
+            "GPT 4o": "openai/gpt-4o",
+            "ChatGPT 4o Latest": "openai/chatgpt-4o-latest",
+            "GPT OSS 120B": "openai/gpt-oss-120b",
+            "o3": "openai/o3",
+            "o1": "openai/o1",
+            "o1-mini": "openai/o1-mini",
+            "Sora 2 Pro": "sora-2-pro",
+            "Sora 2": "sora-2",
+        },
+        "DeepSeek": {
+            "DeepSeek R1": "deepseek-ai/deepseek-r1",
+            "DeepSeek 3.2 Specialized": "deepseek/deepseek-v3.2-specialized",
+        },
+        "Moonshot AI": {
+            "Kimi K2 Thinking": "moonshotai/kimi-k2-thinking",
+            "Kimi K2": "moonshotai/kimi-k2",
+        },
+        "xAI": {
+            "Grok 4": "x-ai/grok-4",
+            "Grok 3 Beta": "x-ai/grok-3-beta",
+        },
+        "Qwen": {
+            "Qwen 3 Max": "qwen/qwen3-max",
+            "Qwen 3 Next 80B Thinking": "qwen/qwen3-next-80b-a3b-thinking",
+            "Qwen 3 235B": "qwen/qwen3-235b-a22b",
+        },
+        "Meta": {
+            "Llama 3.1 405B Instruct": "meta-llama/llama-3.1-405b-instruct",
+        },
+        "Nous Research": {
+            "Hermes 4 405B": "nousresearch/hermes-4-405b",
+        },
+        "Black Forest Labs": {
+            "Flux 1.1 Pro": "black-forest-labs/flux-1.1-pro",
+        },
+    },
+    "Free": {
+        "Google": {
+            "Gemini 2.0 Flash Thinking": "google/gemini-2.0-flash-thinking-exp:free",
+            "Gemma 3 27B Instruct": "google/gemma-3-27b-it:free",
+        },
+        "DeepSeek": {
+            "DeepSeek Chat V3": "deepseek/deepseek-chat-v3-0324:free",
+        },
+    },
 }
+
+# Flat lookup dict for compatibility with functions that expect simple name→id mapping
+_FLAT_AI_MODELS = {}
+for tier_models in AI_MODELS.values():
+    for provider_models in tier_models.values():
+        _FLAT_AI_MODELS.update(provider_models)
 
 # System prompt pairs library
 SYSTEM_PROMPT_PAIRS = {
@@ -1049,7 +1084,7 @@ def get_model_id(display_name):
     Returns:
         The model_id (e.g., "claude-opus-4.5") or None if not found
     """
-    return AI_MODELS.get(display_name)
+    return _FLAT_AI_MODELS.get(display_name)
 
 def get_invite_models_text(tier="Both"):
     """Get formatted text listing available models for AI invitations.
@@ -1062,12 +1097,12 @@ def get_invite_models_text(tier="Both"):
     """
     if tier == "Free":
         # Filter for free models (those with :free in model_id)
-        models = {name: mid for name, mid in AI_MODELS.items() if ":free" in mid.lower()}
+        models = {name: mid for name, mid in _FLAT_AI_MODELS.items() if ":free" in mid.lower()}
     elif tier == "Paid":
         # Filter for paid models (those without :free in model_id)
-        models = {name: mid for name, mid in AI_MODELS.items() if ":free" not in mid.lower()}
+        models = {name: mid for name, mid in _FLAT_AI_MODELS.items() if ":free" not in mid.lower()}
     else:  # "Both"
-        models = AI_MODELS
+        models = _FLAT_AI_MODELS
 
     if not models:
         return "No models available for this tier."
