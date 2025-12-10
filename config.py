@@ -5,6 +5,14 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Import model validator (validates against OpenRouter API, caches for 24h)
+try:
+    from tools.model_updater import validate_models
+    HAS_MODEL_VALIDATOR = True
+except ImportError:
+    HAS_MODEL_VALIDATOR = False
+    print("[Config] tools.model_updater not available, skipping validation")
+
 # Developer tools flag (used for freeze detector and other debug tools)
 DEVELOPER_TOOLS = False
 
@@ -20,7 +28,8 @@ OUTPUTS_DIR = "outputs"
 
 # Available AI models - Hierarchical structure for GroupedModelComboBox
 # Structure: Tier → Provider → {Display Name: model_id}
-AI_MODELS = {
+# This is the curated list - will be validated against OpenRouter API if available
+_CURATED_MODELS = {
     "Paid": {
         "Anthropic Claude": {
             "Claude Opus 4.5": "claude-opus-4.5",
@@ -87,15 +96,80 @@ AI_MODELS = {
         },
     },
     "Free": {
-        "Google": {
-            "Gemini 2.0 Flash Thinking": "google/gemini-2.0-flash-thinking-exp:free",
-            "Gemma 3 27B Instruct": "google/gemma-3-27b-it:free",
+        "Meta": {
+            "Llama 3.3 70B Instruct": "meta-llama/llama-3.3-70b-instruct:free",
+            "Llama 3.2 3B Instruct": "meta-llama/llama-3.2-3b-instruct:free",
         },
-        "DeepSeek": {
-            "DeepSeek Chat V3": "deepseek/deepseek-chat-v3-0324:free",
+        "Google": {
+            "Gemini 2.0 Flash Exp": "google/gemini-2.0-flash-exp:free",
+            "Gemma 3 27B Instruct": "google/gemma-3-27b-it:free",
+            "Gemma 3 12B Instruct": "google/gemma-3-12b-it:free",
+            "Gemma 3 4B Instruct": "google/gemma-3-4b-it:free",
+            "Gemma 3N E2B Instruct": "google/gemma-3n-e2b-it:free",
+            "Gemma 3N E4B Instruct": "google/gemma-3n-e4b-it:free",
+        },
+        "Qwen": {
+            "Qwen 3 235B": "qwen/qwen3-235b-a22b:free",
+            "Qwen 3 4B": "qwen/qwen3-4b:free",
+            "Qwen 3 Coder": "qwen/qwen3-coder:free",
+        },
+        "Mistral AI": {
+            "Mistral Small 3.1 24B": "mistralai/mistral-small-3.1-24b-instruct:free",
+            "Mistral 7B Instruct": "mistralai/mistral-7b-instruct:free",
+            "Devstral 2512": "mistralai/devstral-2512:free",
+        },
+        "NVIDIA": {
+            "Nemotron Nano 12B V2 VL": "nvidia/nemotron-nano-12b-v2-vl:free",
+            "Nemotron Nano 9B V2": "nvidia/nemotron-nano-9b-v2:free",
+        },
+        "OpenAI": {
+            "GPT OSS 120B": "openai/gpt-oss-120b:free",
+            "GPT OSS 20B": "openai/gpt-oss-20b:free",
+        },
+        "Moonshot AI": {
+            "Kimi K2": "moonshotai/kimi-k2:free",
+        },
+        "Nous Research": {
+            "Hermes 3 Llama 3.1 405B": "nousresearch/hermes-3-llama-3.1-405b:free",
+        },
+        "Meituan": {
+            "LongCat Flash Chat": "meituan/longcat-flash-chat:free",
+        },
+        "TNG Technology": {
+            "DeepSeek R1T2 Chimera": "tngtech/deepseek-r1t2-chimera:free",
+            "DeepSeek R1T Chimera": "tngtech/deepseek-r1t-chimera:free",
+            "TNG R1T Chimera": "tngtech/tng-r1t-chimera:free",
+        },
+        "Allen AI": {
+            "OLMo 3 32B Think": "allenai/olmo-3-32b-think:free",
+        },
+        "xAI": {
+            "GLM 4.5 Air": "z-ai/glm-4.5-air:free",
+        },
+        "Amazon": {
+            "Nova 2 Lite V1": "amazon/nova-2-lite-v1:free",
+        },
+        "Arcee AI": {
+            "Trinity Mini": "arcee-ai/trinity-mini:free",
+        },
+        "Alibaba": {
+            "Tongyi DeepResearch 30B": "alibaba/tongyi-deepresearch-30b-a3b:free",
+        },
+        "KwaiPilot": {
+            "KAT Coder Pro": "kwaipilot/kat-coder-pro:free",
+        },
+        "Cognitive Computations": {
+            "Dolphin Mistral 24B": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
         },
     },
 }
+
+# Validate curated models against OpenRouter API (cached for 24 hours)
+# This removes any models that return 404, keeping the list up-to-date
+if HAS_MODEL_VALIDATOR:
+    AI_MODELS = validate_models(_CURATED_MODELS)
+else:
+    AI_MODELS = _CURATED_MODELS
 
 # Flat lookup dict for compatibility with functions that expect simple name→id mapping
 _FLAT_AI_MODELS = {}
