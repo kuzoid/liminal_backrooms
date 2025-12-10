@@ -150,50 +150,53 @@ def get_available_ids() -> set | None:
 def validate_models(curated_models: dict) -> dict:
     """
     Validate curated model list against OpenRouter API.
-    
+
     Removes any models that no longer exist.
-    Returns the validated model dict.
-    
+    Returns the validated model dict with providers sorted alphabetically.
+
     Args:
         curated_models: Your hand-curated AI_MODELS dict
-        
+
     Returns:
-        Validated dict with 404'd models removed
+        Validated dict with 404'd models removed, providers sorted A-Z
     """
     available_ids = get_available_ids()
-    
+
     if available_ids is None:
         print("[ModelUpdater] Validation skipped (no API data), using curated list as-is")
         return curated_models
-    
+
     # Deep copy and validate
     validated = {}
     removed_count = 0
     kept_count = 0
-    
+
     for tier, providers in curated_models.items():
-        validated[tier] = {}
-        
+        tier_providers = {}
+
         for provider, models in providers.items():
-            validated[tier][provider] = {}
-            
+            provider_models = {}
+
             for display_name, model_id in models.items():
                 if model_id in available_ids:
-                    validated[tier][provider][display_name] = model_id
+                    provider_models[display_name] = model_id
                     kept_count += 1
                 else:
                     print(f"[ModelUpdater] [X] Removed (404): {model_id}")
                     removed_count += 1
-            
-            # Remove empty providers
-            if not validated[tier][provider]:
-                del validated[tier][provider]
-    
+
+            # Only add provider if it has models
+            if provider_models:
+                tier_providers[provider] = provider_models
+
+        # Sort providers alphabetically within each tier
+        validated[tier] = dict(sorted(tier_providers.items(), key=lambda x: x[0].lower()))
+
     if removed_count > 0:
         print(f"[ModelUpdater] Validated: {kept_count} kept, {removed_count} removed")
     else:
         print(f"[ModelUpdater] All {kept_count} curated models validated [OK]")
-    
+
     return validated
 
 

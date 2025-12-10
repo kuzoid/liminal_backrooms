@@ -44,6 +44,13 @@ _CURATED_MODELS = {
             "Claude 3.5 Haiku 20241022": "claude-3.5-haiku",
             "Claude 3 Opus": "claude-3-opus",
         },
+        "Black Forest Labs": {
+            "Flux 1.1 Pro": "black-forest-labs/flux-1.1-pro",
+        },
+        "DeepSeek": {
+            "DeepSeek R1": "deepseek-ai/deepseek-r1",
+            "DeepSeek 3.2 Specialized": "deepseek/deepseek-v3.2-specialized",
+        },
         "Google": {
             "Gemini 3 Pro": "google/gemini-3-pro-preview",
             "Gemini 2.5 Pro (Latest)": "google/gemini-2.5-pro-preview-03-25",
@@ -51,6 +58,16 @@ _CURATED_MODELS = {
             "Gemini 2.5 Flash": "google/gemini-2.5-flash-preview",
             "Gemini 2.5 Flash Lite": "google/gemini-2.5-flash-lite-preview-06-17",
             "Nano Banana Pro": "google/gemini-3-pro-image-preview",
+        },
+        "Meta": {
+            "Llama 3.1 405B Instruct": "meta-llama/llama-3.1-405b-instruct",
+        },
+        "Moonshot AI": {
+            "Kimi K2 Thinking": "moonshotai/kimi-k2-thinking",
+            "Kimi K2": "moonshotai/kimi-k2",
+        },
+        "Nous Research": {
+            "Hermes 4 405B": "nousresearch/hermes-4-405b",
         },
         "OpenAI": {
             "GPT 5.1": "openai/gpt-5.1",
@@ -68,37 +85,31 @@ _CURATED_MODELS = {
             "Sora 2 Pro": "sora-2-pro",
             "Sora 2": "sora-2",
         },
-        "DeepSeek": {
-            "DeepSeek R1": "deepseek-ai/deepseek-r1",
-            "DeepSeek 3.2 Specialized": "deepseek/deepseek-v3.2-specialized",
-        },
-        "Moonshot AI": {
-            "Kimi K2 Thinking": "moonshotai/kimi-k2-thinking",
-            "Kimi K2": "moonshotai/kimi-k2",
-        },
-        "xAI": {
-            "Grok 4": "x-ai/grok-4",
-            "Grok 3 Beta": "x-ai/grok-3-beta",
-        },
         "Qwen": {
             "Qwen 3 Max": "qwen/qwen3-max",
             "Qwen 3 Next 80B Thinking": "qwen/qwen3-next-80b-a3b-thinking",
             "Qwen 3 235B": "qwen/qwen3-235b-a22b",
         },
-        "Meta": {
-            "Llama 3.1 405B Instruct": "meta-llama/llama-3.1-405b-instruct",
-        },
-        "Nous Research": {
-            "Hermes 4 405B": "nousresearch/hermes-4-405b",
-        },
-        "Black Forest Labs": {
-            "Flux 1.1 Pro": "black-forest-labs/flux-1.1-pro",
+        "xAI": {
+            "Grok 4": "x-ai/grok-4",
+            "Grok 3 Beta": "x-ai/grok-3-beta",
         },
     },
     "Free": {
-        "Meta": {
-            "Llama 3.3 70B Instruct": "meta-llama/llama-3.3-70b-instruct:free",
-            "Llama 3.2 3B Instruct": "meta-llama/llama-3.2-3b-instruct:free",
+        "Alibaba": {
+            "Tongyi DeepResearch 30B": "alibaba/tongyi-deepresearch-30b-a3b:free",
+        },
+        "Allen AI": {
+            "OLMo 3 32B Think": "allenai/olmo-3-32b-think:free",
+        },
+        "Amazon": {
+            "Nova 2 Lite V1": "amazon/nova-2-lite-v1:free",
+        },
+        "Arcee AI": {
+            "Trinity Mini": "arcee-ai/trinity-mini:free",
+        },
+        "Cognitive Computations": {
+            "Dolphin Mistral 24B": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
         },
         "Google": {
             "Gemini 2.0 Flash Exp": "google/gemini-2.0-flash-exp:free",
@@ -108,15 +119,26 @@ _CURATED_MODELS = {
             "Gemma 3N E2B Instruct": "google/gemma-3n-e2b-it:free",
             "Gemma 3N E4B Instruct": "google/gemma-3n-e4b-it:free",
         },
-        "Qwen": {
-            "Qwen 3 235B": "qwen/qwen3-235b-a22b:free",
-            "Qwen 3 4B": "qwen/qwen3-4b:free",
-            "Qwen 3 Coder": "qwen/qwen3-coder:free",
+        "KwaiPilot": {
+            "KAT Coder Pro": "kwaipilot/kat-coder-pro:free",
+        },
+        "Meituan": {
+            "LongCat Flash Chat": "meituan/longcat-flash-chat:free",
+        },
+        "Meta": {
+            "Llama 3.3 70B Instruct": "meta-llama/llama-3.3-70b-instruct:free",
+            "Llama 3.2 3B Instruct": "meta-llama/llama-3.2-3b-instruct:free",
         },
         "Mistral AI": {
             "Mistral Small 3.1 24B": "mistralai/mistral-small-3.1-24b-instruct:free",
             "Mistral 7B Instruct": "mistralai/mistral-7b-instruct:free",
             "Devstral 2512": "mistralai/devstral-2512:free",
+        },
+        "Moonshot AI": {
+            "Kimi K2": "moonshotai/kimi-k2:free",
+        },
+        "Nous Research": {
+            "Hermes 3 Llama 3.1 405B": "nousresearch/hermes-3-llama-3.1-405b:free",
         },
         "NVIDIA": {
             "Nemotron Nano 12B V2 VL": "nvidia/nemotron-nano-12b-v2-vl:free",
@@ -126,40 +148,18 @@ _CURATED_MODELS = {
             "GPT OSS 120B": "openai/gpt-oss-120b:free",
             "GPT OSS 20B": "openai/gpt-oss-20b:free",
         },
-        "Moonshot AI": {
-            "Kimi K2": "moonshotai/kimi-k2:free",
-        },
-        "Nous Research": {
-            "Hermes 3 Llama 3.1 405B": "nousresearch/hermes-3-llama-3.1-405b:free",
-        },
-        "Meituan": {
-            "LongCat Flash Chat": "meituan/longcat-flash-chat:free",
+        "Qwen": {
+            "Qwen 3 235B": "qwen/qwen3-235b-a22b:free",
+            "Qwen 3 4B": "qwen/qwen3-4b:free",
+            "Qwen 3 Coder": "qwen/qwen3-coder:free",
         },
         "TNG Technology": {
             "DeepSeek R1T2 Chimera": "tngtech/deepseek-r1t2-chimera:free",
             "DeepSeek R1T Chimera": "tngtech/deepseek-r1t-chimera:free",
             "TNG R1T Chimera": "tngtech/tng-r1t-chimera:free",
         },
-        "Allen AI": {
-            "OLMo 3 32B Think": "allenai/olmo-3-32b-think:free",
-        },
         "xAI": {
             "GLM 4.5 Air": "z-ai/glm-4.5-air:free",
-        },
-        "Amazon": {
-            "Nova 2 Lite V1": "amazon/nova-2-lite-v1:free",
-        },
-        "Arcee AI": {
-            "Trinity Mini": "arcee-ai/trinity-mini:free",
-        },
-        "Alibaba": {
-            "Tongyi DeepResearch 30B": "alibaba/tongyi-deepresearch-30b-a3b:free",
-        },
-        "KwaiPilot": {
-            "KAT Coder Pro": "kwaipilot/kat-coder-pro:free",
-        },
-        "Cognitive Computations": {
-            "Dolphin Mistral 24B": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
         },
     },
 }
