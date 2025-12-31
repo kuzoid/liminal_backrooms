@@ -32,17 +32,16 @@ OUTPUTS_DIR = "outputs"
 _CURATED_MODELS = {
     "Paid": {
         "Anthropic Claude": {
-            "Claude Opus 4.5": "claude-opus-4.5",
-            "Claude 4 Opus": "claude-opus-4",
-            "Claude Opus 4.1": "claude-opus-4.1",
-            "Claude Sonnet 4.5": "claude-sonnet-4.5",
-            "Claude Sonnet 4": "claude-sonnet-4",
-            "Claude 3.7 Sonnet": "claude-3.7-sonnet",
-            "Claude 3.5 Sonnet 20241022": "claude-3-5-sonnet-20241022",
-            "Claude 3 Sonnet 20240229": "claude-3-sonnet-20240229",
-            "Claude Haiku 4.5": "claude-haiku-4.5",
-            "Claude 3.5 Haiku 20241022": "claude-3.5-haiku",
-            "Claude 3 Opus": "claude-3-opus",
+            "Claude Opus 4.5": "anthropic/claude-opus-4.5",
+            "Claude Opus 4": "anthropic/claude-opus-4",
+            "Claude Opus 4.1": "anthropic/claude-opus-4.1",
+            "Claude Sonnet 4.5": "anthropic/claude-sonnet-4.5",
+            "Claude Sonnet 4": "anthropic/claude-sonnet-4",
+            "Claude 3.7 Sonnet": "anthropic/claude-3.7-sonnet",
+            "Claude 3.5 Sonnet": "anthropic/claude-3.5-sonnet",
+            "Claude Haiku 4.5": "anthropic/claude-haiku-4.5",
+            "Claude 3.5 Haiku": "anthropic/claude-3.5-haiku",
+            "Claude 3 Opus": "anthropic/claude-3-opus",
         },
         "Black Forest Labs": {
             "Flux 1.1 Pro": "black-forest-labs/flux-1.1-pro",
@@ -1160,6 +1159,20 @@ def get_model_id(display_name):
     """
     return _FLAT_AI_MODELS.get(display_name)
 
+def get_display_name(model_id):
+    """Get the display name for a given model_id.
+
+    Args:
+        model_id: The API model ID (e.g., "anthropic/claude-opus-4.5")
+
+    Returns:
+        The display name (e.g., "Claude Opus 4.5") or the model_id if not found
+    """
+    for display_name, mid in _FLAT_AI_MODELS.items():
+        if mid == model_id:
+            return display_name
+    return model_id  # Fallback to model_id if not found
+
 def get_invite_models_text(tier="Both"):
     """Get formatted text listing available models for AI invitations.
 
@@ -1184,6 +1197,6 @@ def get_invite_models_text(tier="Both"):
     # Format as a bulleted list
     model_list = "\n".join(f"  - {name}" for name in sorted(models.keys()))
 
-    tier_label = f"{tier.upper()} MODELS" if tier != "Both" else "AVAILABLE MODELS"
-    return f"⚠️ ONLY USE {tier_label}:\n{model_list}\n— DO NOT use models not on this list!"
+    tier_label = f"{tier} models" if tier != "Both" else "Available models"
+    return f"{tier_label}:\n{model_list}"
 

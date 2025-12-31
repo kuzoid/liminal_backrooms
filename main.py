@@ -27,7 +27,8 @@ from config import (
     SHOW_CHAIN_OF_THOUGHT_IN_CONTEXT,
     SHARE_CHAIN_OF_THOUGHT,
     DEVELOPER_TOOLS,
-    get_model_tier_by_id
+    get_model_tier_by_id,
+    get_display_name
 )
 from shared_utils import (
     call_claude_api,
@@ -229,8 +230,8 @@ def ai_turn(ai_name, conversation, model, system_prompt, gui=None, is_branch=Fal
             print(f"[AI Turn] Appended models list after !add_ai")
     
     # Prepend model identity to system prompt so AI knows who it is
-    # Include strong instruction to not prefix messages (some models echo their identity)
-    enhanced_system_prompt = f"You are {ai_name}. IMPORTANT: Never start your messages with your name, model ID, or any identifier like '[AI-1]:' or '[model-name]:' - the interface already shows who is speaking. Just write your response directly.\n\n{enhanced_system_prompt}"
+    display_name = get_display_name(model_id)
+    enhanced_system_prompt = f"You are {ai_name} ({display_name}).\n\n{enhanced_system_prompt}"
     
     # Check for branch type and count AI responses
     is_rabbithole = False
