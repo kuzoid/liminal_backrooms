@@ -16,6 +16,7 @@ load_dotenv()
 
 from config import (
     TURN_DELAY,
+    STREAMING_DELAY,
     AI_MODELS,
     SYSTEM_PROMPT_PAIRS,
     SHOW_CHAIN_OF_THOUGHT_IN_CONTEXT,
@@ -1247,29 +1248,62 @@ class ConversationManager:
         self.thread_pool.start(worker1)
         
     def on_streaming_chunk(self, ai_name, chunk):
-        """Handle streaming chunks as they arrive"""
-        # Initialize streaming buffer if not exists
+        """Handle streaming chunks as they arrive with optional delay for readability"""
+        from PyQt6.QtCore import QTimer
+        from collections import deque
+
+        # Initialize streaming buffer and queue if not exists
         if not hasattr(self, '_streaming_buffers'):
             self._streaming_buffers = {}
-        
+        if not hasattr(self, '_streaming_queues'):
+            self._streaming_queues = {}
+        if not hasattr(self, '_streaming_timers'):
+            self._streaming_timers = {}
+
         # Initialize buffer for this AI if needed
         if ai_name not in self._streaming_buffers:
             self._streaming_buffers[ai_name] = ""
+            self._streaming_queues[ai_name] = deque()
             # Add a header to show this AI is responding
             ai_number = int(ai_name.split('-')[1]) if '-' in ai_name else 1
             model_name = self.get_model_for_ai(ai_number)
             self.app.left_pane.append_text(f"\n{ai_name} ({model_name}):\n\n", "header")
-            
+
             # Calculate and update latency on first chunk
             if hasattr(self, '_request_start_time') and hasattr(self.app, 'update_signal_latency'):
                 latency_ms = int((time.time() - self._request_start_time) * 1000)
                 self.app.update_signal_latency(latency_ms)
-        
+
         # Append chunk to buffer
         self._streaming_buffers[ai_name] += chunk
-        
-        # Display the chunk in the GUI
-        self.app.left_pane.append_text(chunk, "ai")
+
+        # If no delay, display immediately
+        if STREAMING_DELAY <= 0:
+            self.app.left_pane.append_text(chunk, "ai")
+            return
+
+        # Add chunk to queue for delayed display
+        self._streaming_queues[ai_name].append(chunk)
+
+        # Start timer if not already running for this AI
+        if ai_name not in self._streaming_timers or not self._streaming_timers[ai_name].isActive():
+            timer = QTimer()
+            timer.setInterval(int(STREAMING_DELAY * 1000))  # Convert to ms
+
+            def process_queue():
+                if ai_name in self._streaming_queues and self._streaming_queues[ai_name]:
+                    next_chunk = self._streaming_queues[ai_name].popleft()
+                    self.app.left_pane.append_text(next_chunk, "ai")
+                else:
+                    timer.stop()
+
+            timer.timeout.connect(process_queue)
+            self._streaming_timers[ai_name] = timer
+            timer.start()
+            # Process first chunk immediately
+            if self._streaming_queues[ai_name]:
+                next_chunk = self._streaming_queues[ai_name].popleft()
+                self.app.left_pane.append_text(next_chunk, "ai")
     
     def on_ai_response_received(self, ai_name, response_content):
         """Handle AI responses for both main and branch conversations"""

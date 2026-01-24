@@ -3359,9 +3359,9 @@ class LiminalBackroomsApp(QMainWindow):
         self.splitter.addWidget(self.left_pane)
         self.splitter.addWidget(self.right_sidebar)
         
-        # Set initial splitter sizes (70:30 ratio - more space for conversation)
+        # Set initial splitter sizes (80:20 ratio - more space for conversation)
         total_width = 1600  # Based on default window width
-        self.splitter.setSizes([int(total_width * 0.70), int(total_width * 0.30)])
+        self.splitter.setSizes([int(total_width * 0.80), int(total_width * 0.20)])
         
         # Initialize main conversation as root node
         self.right_sidebar.add_node('main', 'Seed', 'main')
@@ -3929,7 +3929,7 @@ class LiminalBackroomsApp(QMainWindow):
             print(f"Error restoring splitter state: {e}")
             # Fall back to default sizes
             total_width = self.width()
-            self.splitter.setSizes([int(total_width * 0.7), int(total_width * 0.3)])
+            self.splitter.setSizes([int(total_width * 0.8), int(total_width * 0.2)])
 
     def process_branch_conversation(self, branch_id):
         """Process the branch conversation using the selected models"""
